@@ -2,24 +2,18 @@ mod database;
 mod routes;
 mod services;
 mod dtos;
+mod repositories;
+mod entities;
+mod utils;
 
 use dotenv::dotenv;
-use std::env;
 use actix_web::{App, HttpServer, middleware, web, HttpResponse};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "default_value".to_string());
-
-    match database::MongoDB::init(&database_url, "home-finance").await {
-        Ok(_) => println!("Conexão com MongoDB estabelecida com sucesso."),
-        Err(e) => {
-            eprintln!("Erro ao conectar ao MongoDB: {}", e);
-            std::process::exit(1);
-        }
-    }
+    database::init_db().await;
 
     HttpServer::new(|| {
         App::new()
@@ -29,7 +23,7 @@ async fn main() -> std::io::Result<()> {
                 web::route().to(||async { HttpResponse::NotFound().body("Rota não encontradaa23") }),
             )
     })
-    .bind("0.0.0.0:3058")?
+    .bind("0.0.0.0:3059")?
     .run()
     .await
 }

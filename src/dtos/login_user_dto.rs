@@ -1,15 +1,14 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
-pub struct CreateUserParamsDto {
-    pub name: String,
+pub struct LoginUserParamsDto {
     pub email: String,
     pub password: String,
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct CreateUserResponseDto {
-    pub id: String,
-    pub name: String,
-    pub email: String,
+pub struct LoginUserResponseDto {
+    pub token_type: String,
+    pub expires_in: i64,
+    pub access_token: String,
 }

@@ -1,19 +1,21 @@
+// src/database.rs
 use mongodb::{Client, Database};
-use std::sync::Arc;
-use mongodb::error::Result;
+use std::{env, sync::Arc};
+use once_cell::sync::Lazy;
+use tokio::sync::Mutex;
 
-#[derive(Clone)]
-pub struct MongoDB {
-    pub database: Arc<Database>,
+static DB_INSTANCE: Lazy<Mutex<Option<Arc<Database>>>> = Lazy::new(|| Mutex::new(None));
+
+pub async fn init_db() {
+    let mut db_instance = DB_INSTANCE.lock().await;
+    if db_instance.is_none() {
+        let uri = env::var("DATABASE_URL").unwrap_or_else(|_| "".to_string());
+        let client = Client::with_uri_str(&uri).await.expect("Erro ao conectar ao MongoDB");
+        *db_instance = Some(Arc::new(client.database("home-finance")));
+    }
 }
 
-impl MongoDB {
-    pub async fn init(uri: &str, db_name: &str) -> Result<Self> {
-        let client = Client::with_uri_str(uri).await?;
-        let database = client.database(db_name);
-
-        Ok(MongoDB {
-            database: Arc::new(database),
-        })
-    }
+pub async fn get_db() -> Arc<Database> {
+    let db_instance = DB_INSTANCE.lock().await;
+    db_instance.clone().expect("Banco de dados não inicializado")
 }
