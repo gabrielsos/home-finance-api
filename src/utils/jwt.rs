@@ -2,8 +2,8 @@ use jsonwebtoken::{encode, Header, EncodingKey};
 use std::{env, time::{SystemTime, UNIX_EPOCH}};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
-struct Claims {
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Claims {
     sub: String, // ID do usuário
     exp: usize, // Data de expiração
 }

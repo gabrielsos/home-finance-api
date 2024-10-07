@@ -7,7 +7,7 @@ use argon2::{
     Argon2
 };
 
-use crate::{dtos::create_user_dto::{CreateUserParamsDto, CreateUserResponseDto}, repositories::create_user_repository::UserRepository};
+use crate::{dtos::create_user_dto::{CreateUserParamsDto, CreateUserResponseDto}, repositories::user_repository::UserRepository};
 
 pub async fn execute(CreateUserParamsDto { name, email, password}: &CreateUserParamsDto ) -> CreateUserResponseDto {
     let salt = SaltString::generate(&mut OsRng);

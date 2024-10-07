@@ -5,7 +5,7 @@ use argon2::{
     Argon2
 };
 
-use crate::{dtos::login_user_dto::{LoginUserParamsDto, LoginUserResponseDto}, repositories::create_user_repository::UserRepository, utils::jwt::generate_jwt};
+use crate::{dtos::login_user_dto::{LoginUserParamsDto, LoginUserResponseDto}, repositories::user_repository::UserRepository, utils::jwt::generate_jwt};
 
 pub async fn execute(LoginUserParamsDto { email, password}: &LoginUserParamsDto ) -> LoginUserResponseDto {
     let user_repository = UserRepository::new().await;

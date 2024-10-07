@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use mongodb::bson::oid::ObjectId;
-use mongodb::bson::{doc, from_document, Document};
+use mongodb::bson::{doc, from_document, Document, DateTime};
 use mongodb::results::InsertOneResult;
 use mongodb::Collection;
 use mongodb::error::Result;
@@ -22,10 +22,14 @@ impl UserRepository {
   }
 
   pub async fn create_user(&self, user_data: &CreateUserParamsDto) -> Result<InsertOneResult> {
+    let bson_now = DateTime::now();
+
     let user_data_doc = doc! {
         "name": &user_data.name,
         "email": &user_data.email,
         "password": &user_data.password,
+        "created_at": bson_now,
+        "updated_at": bson_now
     };
 
     let insert_result = self.collection.insert_one(user_data_doc).await?;

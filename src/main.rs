@@ -5,6 +5,7 @@ mod dtos;
 mod repositories;
 mod entities;
 mod utils;
+mod middlewares;
 
 use dotenv::dotenv;
 use actix_web::{App, HttpServer, middleware, web, HttpResponse};
@@ -19,6 +20,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(middleware::Logger::default())
             .configure(routes::user_routes::init)
+            .configure(routes::group_routes::init)
             .default_service(
                 web::route().to(||async { HttpResponse::NotFound().body("Rota não encontradaa23") }),
             )
