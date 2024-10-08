@@ -18,15 +18,17 @@ async fn register_group_controller(
     return HttpResponse::Unauthorized().finish();
   }
 
-  let group = CreateGroupServiceImpl
+  match CreateGroupServiceImpl
     .execute(&CreateGroupParamsDto {
       name: data.name.to_string(),
       description: data.description.as_ref().map(|desc| desc.clone()),
       user_ids: data.user_ids.to_vec(),
     })
-    .await;
-
-  HttpResponse::Ok().json(group)
+    .await
+  {
+    Ok(group) => return HttpResponse::Ok().json(group),
+    Err(err) => return HttpResponse::BadRequest().json(err),
+  };
 }
 
 pub fn init(cfg: &mut web::ServiceConfig) {

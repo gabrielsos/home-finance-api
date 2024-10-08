@@ -27,14 +27,16 @@ async fn register_user(data: web::Json<CreateUserParamsDto>) -> impl Responder {
 async fn login_user_controller(
   data: web::Json<LoginUserParamsDto>,
 ) -> impl Responder {
-  let user = LoginUserServiceImpl
+  match LoginUserServiceImpl
     .execute(&LoginUserParamsDto {
       email: data.email.to_string(),
       password: data.password.to_string(),
     })
-    .await;
-
-  HttpResponse::Ok().json(user)
+    .await
+  {
+    Ok(login) => return HttpResponse::Ok().json(login),
+    Err(_) => return HttpResponse::Unauthorized().finish(),
+  };
 }
 
 pub fn init(cfg: &mut web::ServiceConfig) {
