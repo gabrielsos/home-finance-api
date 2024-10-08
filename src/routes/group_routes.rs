@@ -1,6 +1,6 @@
 use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 
-use crate::{dtos::create_group_dto::CreateGroupParamsDto, middlewares::auth::is_valid_jwt, services::create_group};
+use crate::{dtos::create_group_dto::CreateGroupParamsDto, middlewares::auth::is_valid_jwt, services::create_group::{implementation::CreateGroupServiceImpl, trait_definition::CreateGroupService}};
 
 #[post("/group")]
 async fn register_group_controller(data: web::Json<CreateGroupParamsDto>, req: HttpRequest) -> impl Responder {
@@ -8,7 +8,7 @@ async fn register_group_controller(data: web::Json<CreateGroupParamsDto>, req: H
     return HttpResponse::Unauthorized().finish()
   }
 
-  let group = create_group::execute(
+  let group = CreateGroupServiceImpl.execute(
     &CreateGroupParamsDto{
       name: data.name.to_string(),
       description: data.description.as_ref().map(|desc| desc.clone()),

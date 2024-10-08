@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use mongodb::bson::oid::ObjectId;
-use mongodb::bson::{doc, from_document, Document, DateTime};
+use mongodb::bson::{doc, from_document, Document};
 use mongodb::results::InsertOneResult;
 use mongodb::Collection;
 use mongodb::error::Result;
@@ -9,6 +9,8 @@ use mongodb::error::Result;
 use crate::database;
 use crate::dtos::create_user_dto::CreateUserParamsDto;
 use crate::entities::user::User;
+use crate::utils::crypto::{encrypt_data, generate_nonce};
+use crate::utils::timestamps::DocumentWithTimestamps;
 
 pub struct UserRepository {
     collection: Collection<Document>,
@@ -22,15 +24,13 @@ impl UserRepository {
   }
 
   pub async fn create_user(&self, user_data: &CreateUserParamsDto) -> Result<InsertOneResult> {
-    let bson_now = DateTime::now();
+    let nonce = generate_nonce();
 
     let user_data_doc = doc! {
-        "name": &user_data.name,
-        "email": &user_data.email,
-        "password": &user_data.password,
-        "created_at": bson_now,
-        "updated_at": bson_now
-    };
+        "name": encrypt_data(&user_data.name, &nonce),
+        "email": encrypt_data(&user_data.email, &nonce),
+        "password": encrypt_data(&user_data.password, &nonce),
+    }.with_timestamps();
 
     let insert_result = self.collection.insert_one(user_data_doc).await?;
 
