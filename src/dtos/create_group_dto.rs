@@ -11,5 +11,6 @@ pub struct CreateGroupParamsDto {
 pub struct CreateGroupResponseDto {
   pub id: String,
   pub name: String,
-  pub email: String,
+  pub description: Option<String>,
+  pub user_ids: Vec<String>,
 }

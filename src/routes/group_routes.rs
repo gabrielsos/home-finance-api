@@ -27,7 +27,7 @@ async fn register_group_controller(
     .await
   {
     Ok(group) => return HttpResponse::Ok().json(group),
-    Err(err) => return HttpResponse::BadRequest().json(err),
+    Err(err) => return HttpResponse::build(err.status_code).json(err.json),
   };
 }
 

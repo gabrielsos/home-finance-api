@@ -35,7 +35,7 @@ async fn login_user_controller(
     .await
   {
     Ok(login) => return HttpResponse::Ok().json(login),
-    Err(_) => return HttpResponse::Unauthorized().finish(),
+    Err(err) => return HttpResponse::build(err.status_code).json(err.json),
   };
 }
 

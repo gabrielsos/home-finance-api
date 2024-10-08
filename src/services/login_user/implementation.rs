@@ -6,6 +6,10 @@ use async_trait::async_trait;
 
 use crate::{
   dtos::login_user_dto::{LoginUserParamsDto, LoginUserResponseDto},
+  errors::{
+    internal_server_error::InternalServerError, service_error::ServiceError,
+    unauthorized_error::UnauthorizedError,
+  },
   repositories::user_repository::UserRepository,
   utils::jwt::generate_jwt,
 };
@@ -19,7 +23,7 @@ impl LoginUserService for LoginUserServiceImpl {
   async fn execute<'a>(
     &'a self,
     LoginUserParamsDto { email, password }: &'a LoginUserParamsDto,
-  ) -> Result<LoginUserResponseDto, String> {
+  ) -> Result<LoginUserResponseDto, ServiceError> {
     let user_repository = UserRepository::new().await;
 
     match user_repository.find_user_by_email(email).await {
@@ -31,7 +35,7 @@ impl LoginUserService for LoginUserServiceImpl {
           .verify_password(password.as_bytes(), &parsed_hash)
           .is_err()
         {
-          return Err("Unauthorized".to_string());
+          return Err(UnauthorizedError::new("Unauthorized").service_error);
         }
 
         let access_token = generate_jwt(&user._id.to_string());
@@ -43,12 +47,14 @@ impl LoginUserService for LoginUserServiceImpl {
         });
       }
       Ok(None) => {
-        return Err("Unauthorized".to_string());
+        return Err(UnauthorizedError::new("Unauthorized").service_error);
       }
       Err(err) => {
         println!("Error ");
         eprint!("{}", err);
-        return Err("Unauthorized".to_string());
+        return Err(
+          InternalServerError::new("Internal server error").service_error,
+        );
       }
     }
   }
