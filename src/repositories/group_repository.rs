@@ -1,13 +1,13 @@
 use mongodb::bson::{doc, Document};
+use mongodb::error::Result;
 use mongodb::results::InsertOneResult;
 use mongodb::Collection;
-use mongodb::error::Result;
 
 use crate::database;
 use crate::dtos::create_group_dto::CreateGroupParamsDto;
 use crate::utils::timestamps::DocumentWithTimestamps;
 pub struct GroupRepository {
-    collection: Collection<Document>,
+  collection: Collection<Document>,
 }
 
 impl GroupRepository {
@@ -17,12 +17,16 @@ impl GroupRepository {
     GroupRepository { collection }
   }
 
-  pub async fn create(&self, user_data: &CreateGroupParamsDto) -> Result<InsertOneResult> {
+  pub async fn create(
+    &self,
+    user_data: &CreateGroupParamsDto,
+  ) -> Result<InsertOneResult> {
     let group_data_doc = doc! {
         "name": &user_data.name,
         "description": &user_data.description,
         "user_ids": &user_data.user_ids,
-    }.with_timestamps();
+    }
+    .with_timestamps();
 
     let insert_result = self.collection.insert_one(group_data_doc).await?;
 
