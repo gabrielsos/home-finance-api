@@ -9,7 +9,7 @@ use mongodb::Collection;
 use crate::database;
 use crate::dtos::create_user_dto::CreateUserParamsDto;
 use crate::entities::user::User;
-use crate::utils::crypto::{encrypt_data, generate_nonce};
+use crate::utils::crypto::{decrypt_data, encrypt_data};
 use crate::utils::timestamps::DocumentWithTimestamps;
 
 pub struct UserRepository {
@@ -27,12 +27,10 @@ impl UserRepository {
     &self,
     user_data: &CreateUserParamsDto,
   ) -> Result<InsertOneResult> {
-    let nonce = generate_nonce();
-
     let user_data_doc = doc! {
-        "name": encrypt_data(&user_data.name, &nonce),
-        "email": encrypt_data(&user_data.email, &nonce),
-        "password": encrypt_data(&user_data.password, &nonce),
+        "name": encrypt_data(&user_data.name),
+        "email": encrypt_data(&user_data.email),
+        "password": encrypt_data(&user_data.password),
     }
     .with_timestamps();
 
@@ -46,14 +44,19 @@ impl UserRepository {
     email: &String,
   ) -> Result<Option<User>> {
     let user_data_doc = doc! {
-        "email": email.to_string(),
+        "email": encrypt_data(&email.to_string()),
     };
 
     let user_doc = self.collection.find_one(user_data_doc).await?;
 
     match user_doc {
       Some(doc) => {
-        let user: User = from_document(doc)?;
+        let mut user: User = from_document(doc)?;
+
+        user.name = decrypt_data(&user.name);
+        user.email = decrypt_data(&user.email);
+        user.password = decrypt_data(&user.password);
+
         Ok(Some(user))
       }
       None => Ok(None),

@@ -13,3 +13,9 @@ pub struct CreateUserResponseDto {
   pub name: String,
   pub email: String,
 }
+
+#[derive(Deserialize, Serialize)]
+pub enum CreateUserResponseErrorDto {
+  BadRequestError,
+  InternalServerError,
+}

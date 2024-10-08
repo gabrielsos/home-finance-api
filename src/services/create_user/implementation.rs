@@ -7,6 +7,10 @@ use argon2::{
 
 use crate::{
   dtos::create_user_dto::{CreateUserParamsDto, CreateUserResponseDto},
+  errors::{
+    bad_request_error::BadRequestError,
+    internal_server_error::InternalServerError, service_error::ServiceError,
+  },
   repositories::user_repository::UserRepository,
 };
 
@@ -23,17 +27,36 @@ impl CreateUserService for CreateUserServiceImpl {
       password,
       name,
     }: &'a CreateUserParamsDto,
-  ) -> Result<CreateUserResponseDto, String> {
+  ) -> Result<CreateUserResponseDto, ServiceError> {
+    let user_repository = UserRepository::new().await;
+
+    match user_repository.find_user_by_email(&email).await {
+      Ok(result) => {
+        if result.is_some() {
+          return Err(
+            BadRequestError::new("User is already registered").service_error,
+          );
+        }
+      }
+      Err(_) => {
+        return Err(
+          InternalServerError::new("Internal server error").service_error,
+        );
+      }
+    }
+
     let salt = SaltString::generate(&mut OsRng);
 
     let argon2 = Argon2::default();
 
     let password_hash = match argon2.hash_password(password.as_bytes(), &salt) {
       Ok(hash) => hash.to_string(),
-      Err(_e) => return Err("Falhou".to_string()),
+      Err(_e) => {
+        return Err(
+          InternalServerError::new("Internal server error").service_error,
+        );
+      }
     };
-
-    let user_repository = UserRepository::new().await;
 
     match user_repository
       .create_user(&CreateUserParamsDto {
@@ -51,7 +74,9 @@ impl CreateUserService for CreateUserServiceImpl {
       Err(err) => {
         println!("Error creating user");
         eprint!("{}", err);
-        Err("Falhou".to_string())
+        return Err(
+          InternalServerError::new("Internal server error").service_error,
+        );
       }
     }
   }

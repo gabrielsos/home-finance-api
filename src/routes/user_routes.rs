@@ -19,7 +19,7 @@ async fn register_user(data: web::Json<CreateUserParamsDto>) -> impl Responder {
     .await
   {
     Ok(user) => HttpResponse::Ok().json(user),
-    Err(err) => HttpResponse::Ok().json(err),
+    Err(err) => HttpResponse::build(err.status_code).json(err.json),
   }
 }
 

@@ -1,6 +1,7 @@
 mod database;
 mod dtos;
 mod entities;
+mod errors;
 mod middlewares;
 mod repositories;
 mod routes;
