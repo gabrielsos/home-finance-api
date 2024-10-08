@@ -1,5 +1,5 @@
 use actix_web::http::StatusCode;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 pub struct ServiceError {
   pub json: ReturnValue,

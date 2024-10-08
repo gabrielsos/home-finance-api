@@ -1,4 +1,4 @@
-use actix_web::{http::StatusCode, HttpResponse};
+use actix_web::http::StatusCode;
 
 use super::service_error::{ReturnValue, ServiceError};
 
