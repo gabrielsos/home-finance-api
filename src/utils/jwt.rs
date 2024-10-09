@@ -16,7 +16,7 @@ pub fn generate_jwt(user_id: &str) -> String {
     .duration_since(UNIX_EPOCH)
     .expect("Time went backwards")
     .as_secs()
-    + 3600;
+    + 3600000000000000;
 
   let claims = Claims {
     sub: user_id.to_string(),

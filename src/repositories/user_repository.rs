@@ -67,8 +67,13 @@ impl UserRepository {
     &self,
     user_id: &String,
   ) -> Result<Option<User>> {
+    let id = match ObjectId::from_str(&user_id) {
+      Ok(object_id) => object_id,
+      Err(_) => return Ok(None),
+    };
+
     let user_data_doc = doc! {
-        "_id": ObjectId::from_str(&user_id).unwrap(),
+        "_id": id,
     };
 
     let user_doc = self.collection.find_one(user_data_doc).await?;
