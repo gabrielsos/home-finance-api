@@ -22,6 +22,7 @@ async fn main() -> std::io::Result<()> {
       .wrap(middleware::Logger::default())
       .configure(routes::user_routes::init)
       .configure(routes::group_routes::init)
+      .configure(routes::income_routes::init)
       .default_service(web::route().to(|| async {
         HttpResponse::NotFound().body("Rota não encontradaa23")
       }))

@@ -10,6 +10,7 @@ aes-gcm = "0.10.3"
 anyhow = "1.0.89"
 argon2 = "0.5.3"
 async-trait = "0.1.83"
+chrono = { version = "0.4.38", features = ["serde"] }
 dotenv = "0.15.0"
 generic-array = "1.1.0"
 hex = "0.4.3"

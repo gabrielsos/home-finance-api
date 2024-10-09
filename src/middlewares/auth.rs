@@ -20,8 +20,7 @@ pub async fn is_valid_jwt(headers: &HeaderMap) -> bool {
         decode(token, &decoding_key, &validation);
 
       match token_data {
-        Ok(data) => {
-          println!("Token válido: {:?}", data.claims);
+        Ok(_) => {
           return true;
         }
         Err(_) => {
