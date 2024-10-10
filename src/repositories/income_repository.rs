@@ -47,26 +47,20 @@ impl IncomeRepository {
     &self,
     user_data: &ListIncomeByUserParamsDto,
   ) -> Result<Vec<Income>> {
-    println!("{}", &user_data.user_id);
     let filter = doc! {
       "owner_user_id": &user_data.user_id,
     };
 
     let mut cursor = self.collection.find(filter).await?;
-    println!("{:?}", cursor);
+
     let mut incomes: Vec<Income> = Vec::new();
 
     while let Ok(Some(doc)) = cursor.try_next().await {
       match from_document::<Income>(doc) {
-        Ok(income) => {
-          print!("{:?}", income);
-          incomes.push(income)
-        }
+        Ok(income) => incomes.push(income),
         Err(e) => return Err(e.into()),
       }
     }
-    println!("aqui");
-    println!("{:?}", incomes);
 
     Ok(incomes)
   }
