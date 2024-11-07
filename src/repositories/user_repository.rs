@@ -5,6 +5,7 @@ use mongodb::bson::{doc, from_document, Document};
 use mongodb::error::Result;
 use mongodb::results::InsertOneResult;
 use mongodb::Collection;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::database;
 use crate::dtos::create_user_dto::CreateUserParamsDto;
@@ -53,9 +54,13 @@ impl UserRepository {
       Some(doc) => {
         let mut user: User = from_document(doc)?;
 
-        user.name = decrypt_data(&user.name);
-        user.email = decrypt_data(&user.email);
-        user.password = decrypt_data(&user.password);
+        let data = vec![&user.name, &user.email, &user.password];
+        let decrypted: Vec<String> =
+          data.into_par_iter().map(|d| decrypt_data(d)).collect();
+
+        user.name = decrypted[0].clone();
+        user.email = decrypted[1].clone();
+        user.password = decrypted[2].clone();
 
         Ok(Some(user))
       }
