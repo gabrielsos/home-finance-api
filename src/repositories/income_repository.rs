@@ -1,14 +1,16 @@
+use chrono::{Datelike, NaiveDate, Utc};
 use futures::TryStreamExt;
 use mongodb::bson::{doc, from_document, DateTime, Document};
 use mongodb::error::Result;
 use mongodb::results::InsertOneResult;
 use mongodb::Collection;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::database;
 use crate::dtos::create_income_dto::CreateIncomeParamsDto;
 use crate::dtos::list_income_user::ListIncomeByUserParamsDto;
 use crate::entities::income::Income;
-use crate::utils::crypto::encrypt_data;
+use crate::utils::crypto::{decrypt_data, encrypt_data};
 use crate::utils::timestamps::DocumentWithTimestamps;
 pub struct IncomeRepository {
   collection: Collection<Document>,
@@ -47,9 +49,44 @@ impl IncomeRepository {
     &self,
     user_data: &ListIncomeByUserParamsDto,
   ) -> Result<Vec<Income>> {
-    let filter = doc! {
-      "owner_user_id": &user_data.user_id,
+    let mut filter = doc! {
+      "owner_user_id": &user_data.user_id
     };
+
+    if let Some(date) = user_data.date {
+      let year = date.year();
+      let month = date.month();
+
+      let start_date = DateTime::from_chrono(
+        NaiveDate::from_ymd_opt(year, month, 1)
+          .unwrap()
+          .and_hms_opt(0, 0, 0)
+          .unwrap()
+          .and_local_timezone(Utc)
+          .unwrap(),
+      );
+
+      let last_day = NaiveDate::from_ymd_opt(year, month + 1, 1)
+        .unwrap()
+        .pred_opt()
+        .unwrap();
+
+      let end_date = DateTime::from_chrono(
+        last_day
+          .and_hms_opt(23, 59, 59)
+          .unwrap()
+          .and_local_timezone(Utc)
+          .unwrap(),
+      );
+
+      filter.insert(
+        "date",
+        doc! {
+            "$gte": start_date,
+            "$lt": end_date
+        },
+      );
+    }
 
     let mut cursor = self.collection.find(filter).await?;
 
@@ -57,7 +94,25 @@ impl IncomeRepository {
 
     while let Ok(Some(doc)) = cursor.try_next().await {
       match from_document::<Income>(doc) {
-        Ok(income) => incomes.push(income),
+        Ok(mut income) => {
+          let mut data = vec![&income.title, &income.category];
+
+          if let Some(tag) = &income.tag {
+            data.push(tag);
+          }
+
+          let decrypted: Vec<String> =
+            data.into_par_iter().map(|d| decrypt_data(d)).collect();
+
+          income.title = decrypted[0].clone();
+          income.category = decrypted[1].clone();
+
+          if let Some(_) = income.tag {
+            income.tag = Some(decrypted[2].clone());
+          }
+
+          incomes.push(income)
+        }
         Err(e) => return Err(e.into()),
       }
     }
